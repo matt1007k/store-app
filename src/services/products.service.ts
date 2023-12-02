@@ -1,8 +1,13 @@
 import { EnvsConfig } from "../config"
 
+// interface
+interface GetAllProductsDTO {
+  limit: number;
+}
+
 export class ProductService {
-  static getAllProducts () {
-    return fetch(`${EnvsConfig.apiUrl}/products`)
+  static getAllProducts ({ limit=5 } : GetAllProductsDTO) {
+    return fetch(`${EnvsConfig.apiUrl}/products?limit=${limit}`)
             .then(res => res.json());
   }
   static getProductID (id: string | undefined) {
@@ -10,5 +15,3 @@ export class ProductService {
             .then(res => res.json());
   }
 }
-
-ProductService.getAllProducts()

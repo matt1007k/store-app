@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { Header } from "../../layout";
 import { ProductService } from "../../services/products.service";
 import { useParams } from "react-router-dom";
-import { Grid, styled } from "@mui/material";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
+import { Grid, styled, Typography, Button } from "@mui/material";
 import { TypeCharacter } from "../../components/Products/interface/character.interface";
 
 const Img = styled("img")({
@@ -22,13 +20,19 @@ const ProductPage = () => {
   const { id } = useParams<QuizParams>();
   const [product, setProduct] = useState<TypeCharacter | null>(null);
 
+  // useEffect(() => {
+  //   const getProductID = async (id: string | undefined) => {
+  //     const product = await ProductService.getProductID(id);
+  //     setProduct(product);
+  //   };
+  //   getProductID(id);
+  // }, [id]);
   useEffect(() => {
-    const getProductID = async (id: string | undefined) => {
-      const product = await ProductService.getProductID(id);
-      setProduct(product);
-    };
-    getProductID(id);
-  }, [id]);
+    ProductService.getProductID(id).then((res) => {
+      setProduct(res);
+      localStorage.setItem("product", JSON.stringify(res));
+    });
+  }, [id, product]);
 
   return (
     <>
