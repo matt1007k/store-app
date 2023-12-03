@@ -1,92 +1,71 @@
-import { useEffect, useState, useMemo, useRef, useCallback } from "react";
-import { ProductService } from "../../services/products.service";
+import { CircularProgress, Grid } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
 import { MediaCard } from "..";
+import { ProductService } from "../../services/products.service";
+import { useIntersectionObserver } from "../../utils";
 import { TypeCharacter } from "./interface/character.interface";
-import { useObserver } from '../../utils'
-import { Grid } from "@mui/material";
-
+import { InfinityLoadingFooter } from "./styles";
 
 const Products = () => {
   const [products, setProducts] = useState<TypeCharacter[] | null>(null);
-  const boxWrapper = useRef(null)
-  // const [ isObserverChild ] = useObserver({ rootMargin : '30px', boxElement : boxWrapper?.current })
-  const [ isLoading, setIsLoading ] = useState(false)
-  // useEffect(() => {
-  //   const getAllsProducts = async () => {
-  //     const productsAll = await ProductService.getAllProducts();
-  //     setProducts(productsAll);
-  //   };
-  //   getAllsProducts();
-  // }, []);
+  const ref = useRef<HTMLDivElement>(null);
 
-  const [ limitProduct, setLimitProduct ] = useState(4)
+  const [isLoading, setIsLoading] = useState(false);
 
-  useMemo(async () => {
+  const entry = useIntersectionObserver(ref, { threshold: 0.0 });
+  const isVisible = !!entry?.isIntersecting;
+
+  const [limitProduct, setLimitProduct] = useState(4);
+
+  const fetchProducts = async () => {
     try {
-      setIsLoading(true)
-      // await new Promise((resolve) => setTimeout(() => {
-      //   resolve(true)
-      // }, 1000))
+      setIsLoading(true);
+      await new Promise((resolve) =>
+        setTimeout(() => {
+          resolve(true);
+        }, 1000)
+      );
 
-      const productsAll = await ProductService.getAllProducts({ limit : limitProduct});
-      setProducts(productsAll);  
+      const productsAll = await ProductService.getAllProducts({
+        limit: limitProduct,
+      });
+      setProducts(productsAll);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-  , [limitProduct])
-
-  // useEffect(() => {
-  //   if (isObserverChild) {
-  //     setLimitProduct(prevlimitProduct => prevlimitProduct + 4)
-  //   }
-  //   console.log(isObserverChild)
-  // }, [isObserverChild])
-
+  };
 
   useEffect(() => {
-    const observer = new IntersectionObserver(handleIntersect);
-    if (boxWrapper && boxWrapper.current) {
-      observer.observe(boxWrapper.current);
-    }
+    fetchProducts();
+  }, [limitProduct]);
 
-    return () => {
-      observer.disconnect()
+  useEffect(() => {
+    if (isVisible) {
+      console.log("isVisible");
+
+      setLimitProduct((prevlimitProduct) => prevlimitProduct + 4);
     }
-  }, [])
-  
-  const handleIntersect = ( entries: IntersectionObserverEntry[] ) => {
-    if (entries[0].isIntersecting) {
-      setLimitProduct(prevlimitProduct => prevlimitProduct + 4)
-    }
-    console.log(entries[0].isIntersecting)
-  }
+  }, [isVisible]);
 
   return (
-    <Grid container spacing={2} >
-      {isLoading ? <div>Loading...</div> : (
-        <>
-          {products?.length !== 0
-          ? products?.map((product) => (
-              <MediaCard
-                image={product.image}
-                title={product.title}
-                price={product.price}
-                id={product.id}
-                key={product.id}
-              />
-            ))
-          : ""}
-          <div ref = {boxWrapper}>
-            <p>ladfasdf asdfa  adfafasf a fdf</p>
-          </div>
-        </>
-      )}
-
+    <Grid container spacing={2}>
+      {products?.length !== 0
+        ? products?.map((product) => (
+            <MediaCard
+              image={product.image}
+              title={product.title}
+              price={product.price}
+              id={product.id}
+              key={product.id}
+            />
+          ))
+        : ""}
+      <InfinityLoadingFooter ref={ref}>
+        {isLoading ? <CircularProgress /> : null}
+      </InfinityLoadingFooter>
     </Grid>
-
   );
 };
 
