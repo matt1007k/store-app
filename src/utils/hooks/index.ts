@@ -1,1 +1,1 @@
-export * from './useObersever'
+export * from "./useIntersectionObserver";
